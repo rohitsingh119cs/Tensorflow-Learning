@@ -39,8 +39,13 @@ print("Compiling Model")
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 print("Compiling Model Done")
 
+# ############################################Creating Checkpoint####################################################
+checkpoint_path = "checkpoint/modelcheckpoint.ckpt"
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1, period=2)
+#####################################################################################################################
+
 print("Starting Model Training")
-model.fit(train_images, train_labels, epochs=10)
+model.fit(train_images, train_labels, epochs=10, validation_data=(test_images,test_labels), callbacks=[cp_callback])
 print("Model Training Done")
 
 print("Evaluating Model Accuracy:")
@@ -52,7 +57,6 @@ print('Test loss: {}'.format(test_loss))
 # Create .PB file which is proto buffer
 print('\nSaving Model To Directory path')
 export_path = "model/"
-print('export_path = {}\n'.format(export_path))
 
 tf.keras.models.save_model(
     model,
@@ -65,3 +69,13 @@ tf.keras.models.save_model(
 )
 
 print('\nModel Saved To:', export_path)
+
+
+# ##############################Load Existing Saved Model ##########################################################
+new_model = tf.keras.models.load_model('model/')
+
+# Check its architecture
+new_model.summary()
+loss, acc = new_model.evaluate(test_images,  test_labels, verbose=2)
+print('Restored model, accuracy: {:5.2f}%'.format(100*acc))
+
